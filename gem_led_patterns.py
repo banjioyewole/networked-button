@@ -4,12 +4,14 @@ import sys
 
 sense = SenseHat()
 
-r = [255,0,0]
 o = [255,127,0]
 y = [125,125,0]
 #y = [255, 255, 0]
 g = [0,255,0]
-b = [0,0,255]
+# b = [0,0,255]
+# r = [255,0,0]
+r = y
+b = y
 i = [75,0,130]
 v = [159,0,255]
 e = [0,0,0]
@@ -108,86 +110,88 @@ e,e,e,e,e,e,e,e,
 
 def homekit_gradient():
 
-	base_decr = 5
-	decr = 0
-	pixel = 0
+    base_decr = 5
+    decr = 0
+    pixel = 0
 
-	for row in range(0,8):
-		decr += base_decr
-		for col in range(0,8):
-			pixel = sense.get_pixel(col, row)
-			if(pixel[1] >=decr):
-				pixel[1] -= decr
-			sense.set_pixel(col, row, pixel[0], pixel[1], pixel[2])
-			#print(pixel)
+    for row in range(0,8):
+        decr += base_decr
+        for col in range(0,8):
+            pixel = sense.get_pixel(col, row)
+            if(pixel[1] >=decr):
+                pixel[1] -= decr
+            sense.set_pixel(col, row, pixel[0], pixel[1], pixel[2])
+            #print(pixel)
 
 
 def scroll(image, is_scroll_up):
-        base_inc = .015
-        fade_base_inc = .015
-	was_0 = False
-	row_offset_0_index = 6 if is_scroll_up else -6
-	while(was_0 == False):
-		was_0 = row_offset_0_index == 0
-      		for row in range(0,8):
-			if(row + row_offset_0_index > 7 or row + row_offset_0_index < 0):
-				continue;
-	              	for col in range(0,8):
-                        	pixel = image[8*row + col]
-                        	#if(pixel[1] >=decr):
-                                #	pixel[1] -= decr
+    base_inc = .015
+    fade_base_inc = .015
+    was_0 = False
+    row_offset_0_index = 6 if is_scroll_up else -6
+    while(was_0 == False):
+        was_0 = row_offset_0_index == 0
+        for row in range(0,8):
+            if(row + row_offset_0_index > 7 or row + row_offset_0_index < 0):
+                continue;
+                for col in range(0,8):
+                        pixel = image[8*row + col]
+                        #if(pixel[1] >=decr):
+                            #    pixel[1] -= decr
 
-                        	sense.set_pixel(col, row_offset_0_index+row, pixel[0], pixel[1], pixel[2])
-                        #print(pixel)
-		row_offset_0_index = row_offset_0_index + ((-1) if is_scroll_up else 1)
-		time.sleep(base_inc)
-                base_inc+=fade_base_inc
+                        sense.set_pixel(col, row_offset_0_index+row, pixel[0], pixel[1], pixel[2])
+                    #print(pixel)
+        row_offset_0_index = row_offset_0_index + ((-1) if is_scroll_up else 1)
+        time.sleep(base_inc)
+        base_inc+=fade_base_inc
 
 def fade_out():
-	base_inc = .025
-	fade_base_inc = .0125
-	time.sleep(.05)
-	max_subpixel = 255
-	while(max_subpixel > 0):
-		max_subpixel = 0
-		for row in range(0,8):
-			for col in range(0,8):
-				pixel = sense.get_pixel(col, row)
-				for int in range(0, len(pixel)):
-					pixel[int] /=6
-					pixel[int] *=5
-					max_subpixel = max(max_subpixel, pixel[int])
-				sense.set_pixel(col, row, pixel[0], pixel[1], pixel[2])
-		time.sleep(base_inc)
-		base_inc+=fade_base_inc
+    base_inc = .025
+    fade_base_inc = .0125
+    time.sleep(.05)
+    max_subpixel = 255
+    while(max_subpixel > 0):
+        max_subpixel = 0
+        for row in range(0,8):
+            for col in range(0,8):
+                pixel = sense.get_pixel(col, row)
+                for int in range(0, len(pixel)):
+                    pixel[int] /=6
+                    pixel[int] *=5
+                    max_subpixel = max(max_subpixel, pixel[int])
+                sense.set_pixel(col, row, pixel[0], pixel[1], pixel[2])
+        time.sleep(base_inc)
+        base_inc+=fade_base_inc
 
 
 def display_image(image, scroll_up, fades_out, apply_gradient):
-	if(scroll_up is not None):
-		scroll(image, scroll_up)
-	else:
-		sense.set_pixels(image)
-	if(apply_gradient):
-		homekit_gradient()
-	if(fades_out):
-		fade_out()
+    if(scroll_up is not None):
+        scroll(image, scroll_up)
+    else:
+        time.sleep(0.25)
+        sense.set_pixels(image)
+        time.sleep(0.5)
+    if(apply_gradient):
+        homekit_gradient()
+    if(fades_out):
+        fade_out()
 
 
 def quick_homekit():
-	sense.low_light = False
-	display_image(home_1, True, True, True)
+    sense.low_light = False
+    display_image(home_1, True, True, True)
 
 def quick_up():
-	sense.low_light = False
-	display_image(heat, True, True, True)
+    sense.low_light = False
+    display_image(heat, True, True, True)
 
 def quick_down():
-	sense.low_light = False
-	display_image(cool, False, True, True)
+    sense.low_light = False
+    display_image(cool, False, True, True)
 
 def quick_gong():
-	sense.low_light = False
-	display_image(gong_2, None, True, True)
+    sense.low_light = False
+    display_image(gong_2, None, True, True)
 
 #RUNNABLE
 
@@ -195,21 +199,21 @@ display_image(dark, None, False, False)
 
 
 if(len(sys.argv) > 1):
-	arg = sys.argv[1].lower()
-	if(arg == "heat"):
-		display_image(heat, True, True, True)
-	elif(arg == "cool"):
-		display_image(cool, False, True, True)
-	elif(arg == "home"):
-		display_image(home_1, True, True, True)
-	elif(arg == "gong"):
-		display_image(gong_1, None, True, True)
-	elif(arg == "dark"):
-		display_image(dark, None, False, False)
-	else:
-		display_image(error, None, False, True)
+    arg = sys.argv[1].lower()
+    if(arg == "heat"):
+        display_image(heat, True, True, True)
+    elif(arg == "cool"):
+        display_image(cool, False, True, True)
+    elif(arg == "home"):
+        display_image(home_1, True, True, True)
+    elif(arg == "gong"):
+        display_image(gong_2, None, True, True)
+    elif(arg == "dark"):
+        display_image(dark, None, False, False)
+    else:
+        display_image(error, None, False, True)
 else:
-	display_image(error, None, False, True)
+    display_image(error, None, False, True)
 #scroll(cool, False)
 #sense.set_pixels(home_1)
 sense.low_light = False

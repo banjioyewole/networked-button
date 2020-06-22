@@ -22,8 +22,11 @@ single_press = 0
 double_press = 1
 long_press = 2
 
+
 def preform_action(direction, press_type):
     print("called preform_action")
+    print("direction " + direction)
+    print("press_type" + str(press_type))
     direction = "core" if direction == "middle" else direction
     if len(last_direction) > 0:
         pass
@@ -32,10 +35,10 @@ def preform_action(direction, press_type):
     formed_base_url = base_url + webhook_port
     r = requests.get(formed_base_url, params={ "accessoryId" : "sapphire_joystick" , "buttonName": direction.capitalize(), "event" : press_type })
 
-
 while True:
 
   for event in sense.stick.get_events():
+    print("did get event")
     # Check if the joystick was pressed
     if event.action == ACTION_PRESSED:
       # Check which direction
