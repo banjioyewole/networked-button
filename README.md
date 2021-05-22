@@ -24,5 +24,8 @@ Networked-Button requires Python Library [`Requests`](https://github.com/psf/req
 
 Additional Notes for Arcade-button
 
+The new button actually uses HTTP webhooks; not sure this ever worked with http switch.
+"on_url": "" ?
+
 https://projects.drogon.net/raspberry-pi/gpio-examples/tux-crossing/3-more-leds-and-a-button/
 https://www.raspberrypi.org/forums/viewtopic.php?t=87292

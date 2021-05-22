@@ -21,8 +21,13 @@ import requests
 
 # http://yourHomebridgeServerIp:webhook_port/?accessoryId=theAccessoryIdToTrigger&state=NEWSTATE
 print("Did Start Networked-Button")
+
 base_url = "http://localhost:"
-webhook_port = "7278"
+# internal_button_url = "http://localhost/api/switchOn"
+
+# webhook_port = "7278"
+webhook_port = "8727"
+
 
 base_opal_url = "http://192.168.1.62:"
 opal_port = "42069"
@@ -39,8 +44,12 @@ long_press = 2
 
 consumed_event = False
 is_pressed = False
-last_press_time = time.time()
 
+
+
+def preform_action_thin():
+    formed_base_url = base_url + webhook_port
+    r = requests.get(formed_base_url, params={ "accessoryId" : "bigred" , "event": single_press })
 
 
 def preform_action(direction, press_type):
@@ -62,18 +71,28 @@ GPIO.setmode(GPIO.BOARD) # Use physical pin numbering
 GPIO.setup(3, GPIO.IN, pull_up_down=GPIO.PUD_UP) # Set pin 10 to be an input pin and set initial value to be pulled low (off)
 
 
+
 def did_double_press():
     global consumed_event
     consumed_event = True
     print("double press")
+    r = requests.get(base_opal_url+opal_port+"/")
+    formed_base_url = base_url + webhook_port
+    r = requests.get(formed_base_url, params={ "accessoryId" : "bigred" , "event": double_press })
 
 def did_long_press():
     global consumed_event
     consumed_event = True
     print("did long press")
+    r = requests.get(base_opal_url+opal_port+"/long_press")
+    formed_base_url = base_url + webhook_port
+    r = requests.get(formed_base_url, params={ "accessoryId" : "bigred" , "event": long_press })
+
+
 
 def did_single_press():
     print("did single press")
+    preform_action_thin()
 
 while True:
     time.sleep(0.05)
@@ -91,7 +110,7 @@ while True:
 
     elif GPIO.input(3) == GPIO.HIGH:
 
-        if time.time() - last_press_time > 0.5 and time.time() - last_press_time < 0.55:
+        if (time.time() - last_press_time > 0.5) and (time.time() - last_press_time < 0.55):
             if not consumed_event:
                 did_single_press()
                 # is_pressed = False
