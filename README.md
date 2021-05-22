@@ -1,6 +1,6 @@
 # Networked-Button
 
-## Visual Experiance
+## Visual Experience
 ![Button Press and Lights Change](https://github.com/banjioyewole/networked-button/blob/master/networked_button_demo.gif?raw=true)
 
 ## Top Level
