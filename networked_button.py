@@ -31,11 +31,15 @@ opal_port = "42069"
 last_direction = ""
 last_type = -1
 last_action = None
-last_press_time = time.time()
+last_press_time = time.time() - 1
 
 single_press = 0
 double_press = 1
 long_press = 2
+
+consumed_event = False
+is_pressed = False
+last_press_time = time.time()
 
 
 
@@ -58,9 +62,46 @@ GPIO.setmode(GPIO.BOARD) # Use physical pin numbering
 GPIO.setup(3, GPIO.IN, pull_up_down=GPIO.PUD_UP) # Set pin 10 to be an input pin and set initial value to be pulled low (off)
 
 
+def did_double_press():
+    global consumed_event
+    consumed_event = True
+    print("double press")
+
+def did_long_press():
+    global consumed_event
+    consumed_event = True
+    print("did long press")
+
+def did_single_press():
+    print("did single press")
+
 while True:
+    time.sleep(0.05)
     if GPIO.input(3) == GPIO.LOW:
-        print("Button was pushed!")
+        #double press & long press
+        if not is_pressed and (time.time() - last_press_time) < 0.5:
+            did_double_press()
+            time.sleep(1)
+        if is_pressed and (time.time() - last_press_time) > 0.8 and (time.time() - last_press_time) < 1.0:
+            did_long_press()
+            time.sleep(0.2)
+        if not is_pressed:
+            last_press_time = time.time()
+        is_pressed = True
+
+    elif GPIO.input(3) == GPIO.HIGH:
+
+        if time.time() - last_press_time > 0.5 and time.time() - last_press_time < 0.55:
+            if not consumed_event:
+                did_single_press()
+                # is_pressed = False
+
+            elif consumed_event:
+                consumed_event = False
+                # is_pressed = False
+
+        is_pressed = False
+
 
 
 #
