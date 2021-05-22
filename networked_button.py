@@ -49,7 +49,7 @@ is_pressed = False
 
 def preform_action_thin():
     formed_base_url = base_url + webhook_port
-    r = requests.get(formed_base_url, params={ "accessoryId" : "bigred" , "event": single_press })
+    r = requests.get(formed_base_url, params={ "accessoryId" : "bigred", "buttonName": "Primary", "event": single_press })
 
 
 def preform_action(direction, press_type):
@@ -78,7 +78,7 @@ def did_double_press():
     print("double press")
     r = requests.get(base_opal_url+opal_port+"/")
     formed_base_url = base_url + webhook_port
-    r = requests.get(formed_base_url, params={ "accessoryId" : "bigred" , "event": double_press })
+    r = requests.get(formed_base_url, params={ "accessoryId" : "bigred", "buttonName": "Primary", "event": double_press })
 
 def did_long_press():
     global consumed_event
@@ -86,7 +86,7 @@ def did_long_press():
     print("did long press")
     r = requests.get(base_opal_url+opal_port+"/long_press")
     formed_base_url = base_url + webhook_port
-    r = requests.get(formed_base_url, params={ "accessoryId" : "bigred" , "event": long_press })
+    r = requests.get(formed_base_url, params={ "accessoryId" : "bigred", "buttonName": "Primary", "event": long_press })
 
 
 
