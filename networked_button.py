@@ -1,33 +1,18 @@
-# from sense_hat import SenseHat, ACTION_PRESSED, ACTION_HELD, ACTION_RELEASED
 import RPi.GPIO as GPIO
-# from time import sleep
-# from time import time
+
 import time
-# from gem_led_patterns import *
 import requests
-# sense = SenseHat()
-
-# e = (0, 0, 0)
-# w = (255, 255, 255)
-
-# sense.clear()
-
-# senseWrapper = LuminousClass()
-# myLumen.sense.clear()
-# senseWrapper.quick_up()
 
 # The arcade-button exposes only the single press event through Homekit, handling the double press and long press with http request to other devices on the network
 
 
 # http://yourHomebridgeServerIp:webhook_port/?accessoryId=theAccessoryIdToTrigger&state=NEWSTATE
+print("Waiting 30 sec to start...")
+time.sleep(0)
 print("Did Start Networked-Button")
 
 base_url = "http://localhost:"
-# internal_button_url = "http://localhost/api/switchOn"
-
-# webhook_port = "7278"
 webhook_port = "8727"
-
 
 base_opal_url = "http://192.168.1.62:"
 opal_port = "42069"
@@ -37,19 +22,16 @@ last_direction = ""
 last_type = -1
 last_action = None
 last_press_time = time.time() - 1
-
+invalid_press_time = time.time() - 1
 single_press = 0
 double_press = 1
 long_press = 2
 
-consumed_event = False
-is_pressed = False
+# consumed_event = False
+LOW_CONSUMED = False
+UNCONSUMED = False
 
-
-
-def preform_action_thin():
-    formed_base_url = base_url + webhook_port
-    r = requests.get(formed_base_url, params={ "accessoryId" : "bigred", "buttonName": "Primary", "event": single_press })
+did_press = False
 
 
 def preform_action(direction, press_type):
@@ -69,77 +51,88 @@ def preform_action(direction, press_type):
 GPIO.setwarnings(False) # Ignore warning for now
 GPIO.setmode(GPIO.BOARD) # Use physical pin numbering
 GPIO.setup(3, GPIO.IN, pull_up_down=GPIO.PUD_UP) # Set pin 10 to be an input pin and set initial value to be pulled low (off)
-
+# Up is HIGH
 
 
 def did_double_press():
-    global consumed_event
-    consumed_event = True
+    did_consume_button_event_in_low_state()
     print("double press")
-    r = requests.get(base_opal_url+opal_port+"/")
     formed_base_url = base_url + webhook_port
     r = requests.get(formed_base_url, params={ "accessoryId" : "bigred", "buttonName": "Primary", "event": double_press })
 
 def did_long_press():
-    global consumed_event
-    consumed_event = True
+    did_consume_button_event_in_low_state()
     print("did long press")
-    r = requests.get(base_opal_url+opal_port+"/long_press")
     formed_base_url = base_url + webhook_port
     r = requests.get(formed_base_url, params={ "accessoryId" : "bigred", "buttonName": "Primary", "event": long_press })
 
 
-
 def did_single_press():
     print("did single press")
-    preform_action_thin()
+    formed_base_url = base_url + webhook_port
+    r = requests.get(formed_base_url, params={ "accessoryId" : "bigred", "buttonName": "Primary", "event": single_press })
 
-while True:
-    time.sleep(0.05)
+def did_consume_button_event_in_low_state():
+        global LOW_CONSUMED
+        global did_press
+        global UNCONSUMED
+        global last_press_time
+        global invalid_press_time
+        LOW_CONSUMED = True
+        did_press = False
+        UNCONSUMED = False
+        last_press_time = invalid_press_time
+
+while True: #DEFAULT BUTTON STATE IS "HIGH"
+    time.sleep(0.0025)
     if GPIO.input(3) == GPIO.LOW:
+        # print("LOW")
         #double press & long press
-        if not is_pressed and (time.time() - last_press_time) < 0.5:
-            did_double_press()
-            time.sleep(1)
-        if is_pressed and (time.time() - last_press_time) > 0.8 and (time.time() - last_press_time) < 1.0:
-            did_long_press()
-            time.sleep(0.2)
-        if not is_pressed:
-            last_press_time = time.time()
-        is_pressed = True
+
+        if not LOW_CONSUMED:
+
+            if did_press and UNCONSUMED and (time.time() - last_press_time) < 0.5:
+                did_double_press()
+                continue
+                # time.sleep(1)
+            if did_press and not UNCONSUMED and (time.time() - last_press_time) > 0.8 and (time.time() - last_press_time) < 1.0:
+                did_long_press()
+                continue
+
+            # if did_press and UNCONSUMED and (time.time() - last_press_time) > 0.8 and (time.time() - last_press_time) < 1.0: #notPossible
+            #     did_single_press_and_hold()
+            #     continue
+
+        #     time.sleep(0.2)
+            if not did_press:
+                last_press_time = time.time()
+                did_press = True
+
+        if LOW_CONSUMED:
+            last_press_time = invalid_press_time
+
 
     elif GPIO.input(3) == GPIO.HIGH:
+        # print("HIGH")
+        #
+        if LOW_CONSUMED:
+            LOW_CONSUMED = False
+            continue
 
         if (time.time() - last_press_time > 0.5) and (time.time() - last_press_time < 0.55):
-            if not consumed_event:
+            # if not consumed_event:
+            if did_press:
                 did_single_press()
-                # is_pressed = False
+                last_press_time = invalid_press_time
+                did_press = False
+                UNCONSUMED = False
+        else:
+            if did_press and (time.time() - last_press_time < 0.5):
+                UNCONSUMED = True
 
-            elif consumed_event:
-                consumed_event = False
-                # is_pressed = False
-
-        is_pressed = False
-
-
-
-#
-# while True:
-#     event = senseWrapper.sense.stick.wait_for_event()
-#
-#     # Check if the joystick was pressed
-#     if event.action == ACTION_PRESSED:
-#         last_action = ACTION_PRESSED
-#
-#
-#     elif event.action == ACTION_HELD:
-#         if last_action == ACTION_HELD:
-#             continue
-#         last_action = ACTION_HELD
-#         preform_action(event.direction, long_press)
-#
-#     elif event.action == ACTION_RELEASED:
-#         if last_action == ACTION_HELD:
-#             last_action = ACTION_RELEASED
-#             continue
-#         preform_action(event.direction, single_press)
+        #
+        #     elif consumed_event:
+        #         consumed_event = False
+        #         # is_pressed = False
+        #
+        # is_pressed = False
