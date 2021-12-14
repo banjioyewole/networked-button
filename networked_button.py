@@ -8,7 +8,7 @@ import requests
 
 # http://yourHomebridgeServerIp:webhook_port/?accessoryId=theAccessoryIdToTrigger&state=NEWSTATE
 print("Waiting 30 sec to start...")
-time.sleep(0)
+time.sleep(30)
 print("Did Start Networked-Button")
 
 base_url = "http://localhost:"
